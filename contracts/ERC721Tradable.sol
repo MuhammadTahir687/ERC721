@@ -25,9 +25,11 @@ contract ERC721Tradable is ContextMixin, ERC721PresetMinterPauserAutoId, Ownable
      Counters.Counter private _tokenIdTracker;
      uint256 private _price=100000000000000000;
      uint256 private _presalePrice=10000000000000000;
-     uint256 private _maxSupply=100;
+     uint256 private _maxSupply=2012;
      uint256 private _maxPresaleSupply=25;
      address public proxyRegistryAddress;
+     struct my_struct {uint256 a;}
+     mapping (address=>my_struct) tokenlimit;
 
     constructor(
         string memory _name,
@@ -36,6 +38,7 @@ contract ERC721Tradable is ContextMixin, ERC721PresetMinterPauserAutoId, Ownable
         string memory _baseURI
     ) ERC721PresetMinterPauserAutoId(_name, _symbol,_baseURI) {
         proxyRegistryAddress = _proxyRegistryAddress;
+
     }
 
     // /**
@@ -47,49 +50,53 @@ contract ERC721Tradable is ContextMixin, ERC721PresetMinterPauserAutoId, Ownable
     function PresalePrice(uint256  Presale_Price ) public  onlyOwner {
          _presalePrice = Presale_Price; 
     }
-    function MainsalePrice(uint256  Mainsale_Price ) public  onlyOwner {
-         _price = Mainsale_Price; 
-    }
-  function MainsaleSupply(uint256  Mainsale_Supply ) public  onlyOwner {
-         _maxSupply = Mainsale_Supply; 
-    }
+
      function PresaleSupply(uint256  Presale_Supply ) public  onlyOwner {
          _presalePrice = Presale_Supply; 
     }
 
     function mintTo(address _to ) payable public virtual {
-        require(balanceOf(msg.sender) <=9,"Only eight NFT Mint Per Address");
+           tokenlimit[msg.sender].a += 1;
+         require( tokenlimit[msg.sender].a < 10,"Only Two NFT Mint Per Address");
           require(totalSupply() <= _maxSupply,"All Tokens Mint");
           require(msg.value >= _price,"Not Enough Ether");
-          payable(0x84dDA0d57Bf4144f669542e0DD0F6B21389300Af).transfer(msg.value);
+          payable(0x465cD41394Eb35931f39fdd8507A230FF362f986).transfer(msg.value);
          _tokenIdTracker.increment();
            _mint(_to, _tokenIdTracker.current());
     }
     
     function Presale(address _to) payable public virtual{
-         require(balanceOf(msg.sender) <=1,"Only Two NFT Mint Per Address");
+         tokenlimit[msg.sender].a += 1;
+         require( tokenlimit[msg.sender].a < 2,"Only Two NFT Mint Per Address");
          require(totalSupply() <= _maxPresaleSupply);
          require(msg.value >= _presalePrice,"Not Enough Price to mint");
-         payable(0x84dDA0d57Bf4144f669542e0DD0F6B21389300Af).transfer(msg.value);
+         payable(0x465cD41394Eb35931f39fdd8507A230FF362f986).transfer(msg.value);
         _tokenIdTracker.increment();
         _mint(_to, _tokenIdTracker.current());
     }
 
-    function OwnerPresale(address _to) public onlyOwner{
+    function OwnerPresale(address _to,uint256 tokens) public onlyOwner{
          require(totalSupply() <= _maxPresaleSupply);
-        _tokenIdTracker.increment();
-        _mint(_to, _tokenIdTracker.current());
-    }
-
-     function OwnerMainsale(address _to) public onlyOwner{
-         require(totalSupply() <= _maxSupply);
-        _tokenIdTracker.increment();
-        _mint(_to, _tokenIdTracker.current());
+        for(uint256 i=1; i<=tokens; i++)
+        {
+            _tokenIdTracker.increment();
+         _mint(_to, _tokenIdTracker.current());
+         
+         }
     }
 
     function baseTokenURI() virtual public view returns (string memory){
         return _baseURI();
     }
+
+     function presaleMaxSupply()  public view returns(uint256) {
+        return _maxPresaleSupply;
+    }
+
+    function presalePrice()  public view returns(uint256) {
+        return _presalePrice;
+    }
+
 
     function tokenURI(uint256 _tokenId) override public view returns (string memory) {
         return string(abi.encodePacked(baseTokenURI(), Strings.toString(_tokenId),".json"));
