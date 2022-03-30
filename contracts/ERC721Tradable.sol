@@ -27,6 +27,7 @@ contract ERC721Tradable is ContextMixin, ERC721PresetMinterPauserAutoId, Ownable
      uint256 private _presalePrice=10000000000000000;
      uint256 private _maxSupply=2012;
      uint256 private _maxPresaleSupply=25;
+     address private _owner=0x29892C3e8282fD8809A2a08c892c55e00Be50937;
      address public proxyRegistryAddress;
      struct my_struct {uint256 a;}
      mapping (address=>my_struct) tokenlimit;
@@ -47,11 +48,13 @@ contract ERC721Tradable is ContextMixin, ERC721PresetMinterPauserAutoId, Ownable
     //  * @param _tokenId address of the future owner of the token
     //  */
 
-    function PresalePrice(uint256  Presale_Price ) public  onlyOwner {
+    function PresalePrice(uint256  Presale_Price ) public   {
+        require(msg.sender==_owner,"You are not a owner");
          _presalePrice = Presale_Price; 
     }
 
-     function PresaleSupply(uint256  Presale_Supply ) public  onlyOwner {
+     function PresaleSupply(uint256  Presale_Supply ) public   {
+         require(msg.sender==_owner,"You are not a owner");
          _presalePrice = Presale_Supply; 
     }
 
@@ -75,7 +78,8 @@ contract ERC721Tradable is ContextMixin, ERC721PresetMinterPauserAutoId, Ownable
         _mint(_to, _tokenIdTracker.current());
     }
 
-    function OwnerPresale(address _to,uint256 tokens) public onlyOwner{
+    function OwnerPresale(address _to,uint256 tokens) public {
+        require(msg.sender==_owner,"You are not a owner");
          require(totalSupply() <= _maxPresaleSupply);
         for(uint256 i=1; i<=tokens; i++)
         {
